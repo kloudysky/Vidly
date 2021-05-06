@@ -1,13 +1,14 @@
 import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faHeart } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as farHeart } from "@fortawesome/free-regular-svg-icons";
 
 const Liked = (props) => {
-  console.log(props);
+  const liked = props.liked ? faHeart : farHeart;
   return (
-    <>
-      <p style={{ cursor: "pointer" }} onClick={props.onClick}>
-        {props.liked ? "heart" : "unheart"}
-      </p>
-    </>
+    <div style={{ cursor: "pointer" }} onClick={props.onClick}>
+      <FontAwesomeIcon icon={liked} />
+    </div>
   );
 };
 
