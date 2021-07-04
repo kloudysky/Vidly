@@ -3,7 +3,6 @@ import * as Movies from "../services/fakeMovieService";
 import Liked from "./common/Liked";
 import Pagination from "./common/Pagination";
 import { paginate } from "../utils/paginate";
-import { moveEmitHelpers } from "typescript";
 
 class MoviesComponent extends Component {
   constructor() {
