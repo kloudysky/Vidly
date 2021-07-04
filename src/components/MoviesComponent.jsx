@@ -1,26 +1,38 @@
 import React, { Component } from "react";
 import * as Movies from "../services/fakeMovieService";
 import Liked from "./common/Liked";
+import Pagination from "./common/Pagination";
+import { paginate } from "../utils/paginate";
+import { moveEmitHelpers } from "typescript";
 
 class MoviesComponent extends Component {
   constructor() {
     super();
-    this.state = { movies: Movies.getMovies() };
+    this.state = { movies: Movies.getMovies(), pageSize: 4, currentPage: 1 };
   }
 
   render() {
     const { length: count } = this.state.movies;
+    const { pageSize, currentPage } = this.state;
     if (count === 0) return <p>There are no movies</p>;
+
+    const movies = paginate(this.state.movies, currentPage, pageSize);
 
     return (
       <>
         <p>Showing {count} movies in the db</p>
-        <div>{this.generateTable()}</div>
+        <div>{this.generateTable(movies)}</div>
+        <Pagination
+          itemsCount={count}
+          pageSize={pageSize}
+          onPageChange={this.handlePageChange}
+          currentPage={currentPage}
+        />
       </>
     );
   }
 
-  generateTable() {
+  generateTable(movies) {
     return (
       <table className="table">
         <thead>
@@ -33,7 +45,7 @@ class MoviesComponent extends Component {
             <th scope="col"></th>
           </tr>
         </thead>
-        <tbody>{this.getMovies()}</tbody>
+        <tbody>{this.getMovies(movies)}</tbody>
       </table>
     );
   }
@@ -53,8 +65,11 @@ class MoviesComponent extends Component {
     this.setState({ movies });
   };
 
-  getMovies() {
-    const movies = this.state.movies;
+  handlePageChange = (page) => {
+    this.setState({ currentPage: page });
+  };
+
+  getMovies(movies) {
     return (
       <>
         {movies.map((movie) => (
