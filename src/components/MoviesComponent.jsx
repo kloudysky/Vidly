@@ -5,6 +5,7 @@ import Liked from "./common/Liked";
 import Pagination from "./common/Pagination";
 import { paginate } from "../utils/paginate";
 import ListGroup from "./common/ListGroup";
+import MoviesTable from "./MoviesTable";
 
 class MoviesComponent extends Component {
   constructor() {
@@ -18,7 +19,8 @@ class MoviesComponent extends Component {
   }
 
   componentDidMount() {
-    this.setState({ movies: Movies.getMovies(), genres: getGenres() });
+    const genres = [{ name: "All Genres" }, ...getGenres()];
+    this.setState({ movies: Movies.getMovies(), genres });
   }
 
   render() {
@@ -33,9 +35,10 @@ class MoviesComponent extends Component {
 
     if (count === 0) return <p>There are no movies</p>;
 
-    const filtered = selectedGenre
-      ? allMovies.filter((movie) => movie.genre._id === selectedGenre._id)
-      : allMovies;
+    const filtered =
+      selectedGenre && selectedGenre._id
+        ? allMovies.filter((movie) => movie.genre._id === selectedGenre._id)
+        : allMovies;
 
     const movies = paginate(filtered, currentPage, pageSize);
 
@@ -50,7 +53,11 @@ class MoviesComponent extends Component {
         </div>
         <div className="col">
           <p>Showing {filtered.length} movies in the db</p>
-          <div>{this.generateTable(movies)}</div>
+          <MoviesTable
+            onDelete={this.handleDelete}
+            onLike={this.handleLike}
+            movies={movies}
+          />
           <Pagination
             itemsCount={filtered.length}
             pageSize={pageSize}
@@ -62,25 +69,7 @@ class MoviesComponent extends Component {
     );
   }
 
-  generateTable(movies) {
-    return (
-      <table className="table">
-        <thead>
-          <tr>
-            <th scope="col">Title</th>
-            <th scope="col">Genre</th>
-            <th scope="col">Stock</th>
-            <th scope="col">Rate</th>
-            <th scope="col"></th>
-            <th scope="col"></th>
-          </tr>
-        </thead>
-        <tbody>{this.getMovies(movies)}</tbody>
-      </table>
-    );
-  }
-
-  deleteMovie = (movieId) => {
+  handleDelete = (movieId) => {
     Movies.deleteMovie(movieId);
     this.setState({
       movies: Movies.getMovies(),
@@ -100,37 +89,8 @@ class MoviesComponent extends Component {
   };
 
   handleGenreSelect = (genre) => {
-    this.setState({ selectedGenre: genre });
+    this.setState({ selectedGenre: genre, currentPage: 1 });
   };
-
-  getMovies(movies) {
-    return (
-      <>
-        {movies.map((movie) => (
-          <tr key={movie._id}>
-            <td>{movie.title}</td>
-            <td>{movie.genre.name}</td>
-            <td>{movie.numberInStock}</td>
-            <td>{movie.dailyRentalRate}</td>
-            <td>
-              <Liked
-                onClick={() => this.handleLike(movie)}
-                liked={movie.liked}
-              />
-            </td>
-            <td>
-              <button
-                onClick={() => this.deleteMovie(movie._id)}
-                className="btn btn-danger"
-              >
-                Delete
-              </button>
-            </td>
-          </tr>
-        ))}
-      </>
-    );
-  }
 }
 
 export default MoviesComponent;
