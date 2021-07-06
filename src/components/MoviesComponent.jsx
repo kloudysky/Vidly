@@ -1,11 +1,11 @@
 import React, { Component } from "react";
 import * as Movies from "../services/fakeMovieService";
 import { getGenres } from "../services/fakeGenreService";
-import Liked from "./common/Liked";
 import Pagination from "./common/Pagination";
 import { paginate } from "../utils/paginate";
 import ListGroup from "./common/ListGroup";
 import MoviesTable from "./MoviesTable";
+import _ from "lodash";
 
 class MoviesComponent extends Component {
   constructor() {
@@ -15,11 +15,12 @@ class MoviesComponent extends Component {
       pageSize: 4,
       currentPage: 1,
       genres: [],
+      sortColumn: { path: "title", order: "asc" },
     };
   }
 
   componentDidMount() {
-    const genres = [{ name: "All Genres" }, ...getGenres()];
+    const genres = [{ _id: "", name: "All Genres" }, ...getGenres()];
     this.setState({ movies: Movies.getMovies(), genres });
   }
 
@@ -31,6 +32,7 @@ class MoviesComponent extends Component {
       selectedGenre,
       genres,
       movies: allMovies,
+      sortColumn,
     } = this.state;
 
     if (count === 0) return <p>There are no movies</p>;
@@ -40,7 +42,9 @@ class MoviesComponent extends Component {
         ? allMovies.filter((movie) => movie.genre._id === selectedGenre._id)
         : allMovies;
 
-    const movies = paginate(filtered, currentPage, pageSize);
+    const sort = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
+
+    const movies = paginate(sort, currentPage, pageSize);
 
     return (
       <div className="row mt-5">
@@ -57,6 +61,8 @@ class MoviesComponent extends Component {
             onDelete={this.handleDelete}
             onLike={this.handleLike}
             movies={movies}
+            onSort={this.handleSort}
+            sortColumn={sortColumn}
           />
           <Pagination
             itemsCount={filtered.length}
@@ -90,6 +96,10 @@ class MoviesComponent extends Component {
 
   handleGenreSelect = (genre) => {
     this.setState({ selectedGenre: genre, currentPage: 1 });
+  };
+
+  handleSort = (sortColumn) => {
+    this.setState({ sortColumn });
   };
 }
 
