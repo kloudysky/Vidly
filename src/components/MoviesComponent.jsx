@@ -1,33 +1,64 @@
 import React, { Component } from "react";
 import * as Movies from "../services/fakeMovieService";
+import { getGenres } from "../services/fakeGenreService";
 import Liked from "./common/Liked";
 import Pagination from "./common/Pagination";
 import { paginate } from "../utils/paginate";
+import ListGroup from "./common/ListGroup";
 
 class MoviesComponent extends Component {
   constructor() {
     super();
-    this.state = { movies: Movies.getMovies(), pageSize: 4, currentPage: 1 };
+    this.state = {
+      movies: [],
+      pageSize: 4,
+      currentPage: 1,
+      genres: [],
+    };
+  }
+
+  componentDidMount() {
+    this.setState({ movies: Movies.getMovies(), genres: getGenres() });
   }
 
   render() {
     const { length: count } = this.state.movies;
-    const { pageSize, currentPage } = this.state;
+    const {
+      pageSize,
+      currentPage,
+      selectedGenre,
+      genres,
+      movies: allMovies,
+    } = this.state;
+
     if (count === 0) return <p>There are no movies</p>;
 
-    const movies = paginate(this.state.movies, currentPage, pageSize);
+    const filtered = selectedGenre
+      ? allMovies.filter((movie) => movie.genre._id === selectedGenre._id)
+      : allMovies;
+
+    const movies = paginate(filtered, currentPage, pageSize);
 
     return (
-      <>
-        <p>Showing {count} movies in the db</p>
-        <div>{this.generateTable(movies)}</div>
-        <Pagination
-          itemsCount={count}
-          pageSize={pageSize}
-          onPageChange={this.handlePageChange}
-          currentPage={currentPage}
-        />
-      </>
+      <div className="row mt-5">
+        <div className="col-3">
+          <ListGroup
+            items={genres}
+            selectedItem={selectedGenre}
+            onItemSelect={this.handleGenreSelect}
+          />
+        </div>
+        <div className="col">
+          <p>Showing {filtered.length} movies in the db</p>
+          <div>{this.generateTable(movies)}</div>
+          <Pagination
+            itemsCount={filtered.length}
+            pageSize={pageSize}
+            onPageChange={this.handlePageChange}
+            currentPage={currentPage}
+          />
+        </div>
+      </div>
     );
   }
 
@@ -66,6 +97,10 @@ class MoviesComponent extends Component {
 
   handlePageChange = (page) => {
     this.setState({ currentPage: page });
+  };
+
+  handleGenreSelect = (genre) => {
+    this.setState({ selectedGenre: genre });
   };
 
   getMovies(movies) {
